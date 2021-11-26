@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
 
 namespace Microsoft.SourceBrowser.HtmlGenerator
 {
@@ -73,7 +73,12 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
         {
             var url = GetAssemblyUrl(server);
 
-            var assemblyList = new WebClient().DownloadString(url);
+            using var client = new HttpClient();
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            using var response = client.Send(request);
+            using var reader = new StreamReader(response.Content.ReadAsStream());
+            
+            var assemblyList = reader.ReadToEnd();
             var assemblyNames = GetAssemblyNames(assemblyList);
 
             federations.Add(new Info(server, assemblyNames));

@@ -5,9 +5,9 @@ using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Xml;
 using Microsoft.SourceBrowser.Common;
-using ExceptionAnalysis.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Diagnostics;
 
 namespace Microsoft.SourceBrowser.HtmlGenerator
 {
@@ -137,9 +137,11 @@ namespace Microsoft.SourceBrowser.HtmlGenerator
                         return;
                     }
 
-                    var trace = new TraceFactory().Manufacture(ex);
+                    IEnumerable<Module> modules = new StackTrace(ex, fNeedFileInfo: true)
+                        .GetFrames()
+                        .Select(f => f.GetMethod().Module);
 
-                    if (trace.Select(f => f.Method.Module).Any(IgnoredModules.Contains))
+                    if (modules.Any(IgnoredModules.Contains))
                     {
                         return;
                     }
